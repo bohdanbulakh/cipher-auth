@@ -2,10 +2,11 @@ FROM node:22-alpine AS builder
 RUN corepack enable
 
 WORKDIR /app
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .yarnrc.yml ./
 
 RUN yarn install --immutable
 COPY . .
+RUN yarn build
 RUN yarn workspaces focus --production --all
 
 FROM node:22-alpine AS runner
