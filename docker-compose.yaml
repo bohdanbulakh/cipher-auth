@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres-cipher-auth
+    restart: unless-stopped
+    volumes:
+      - ~/deployment/cipher-auth/postgres-data:/var/lib/postgresql/data
+    ports:
+      - "8000:5432"
+    env_file:
+      - ~/deployment/cipher-auth/env/.postgres.env
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - "--cleanup"
+      - "-i"
+      - "60"
