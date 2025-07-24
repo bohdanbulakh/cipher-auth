@@ -54,6 +54,7 @@ export default tseslint.config(
       'space-before-blocks': 'error',
       'space-in-parens': 'error',
       eqeqeq: ['error', 'smart'],
+      '@typescript-eslint/no-unsafe-call': 'off',
       'unused-imports/no-unused-imports': 'error',
       'no-trailing-spaces': ['error', { skipBlankLines: false }],
       'unused-imports/no-unused-vars': [
