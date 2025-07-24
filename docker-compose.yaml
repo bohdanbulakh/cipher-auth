@@ -1,6 +1,18 @@
 version: '3'
 
 services:
+  cipher-auth:
+    image: bohdanbulakh/cipher-auth
+    container_name: cipher-auth
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - watchtower
+    ports:
+      - "3004:3000"
+    env_file:
+      - ~/deployment/cipher-auth/env/.cipher-auth.env
+
   postgres:
     image: postgres:17
     container_name: postgres-cipher-auth
