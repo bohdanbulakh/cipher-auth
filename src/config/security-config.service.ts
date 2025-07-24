@@ -3,7 +3,18 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SecurityConfigService {
+  private readonly defaultPort = '3000';
   constructor (private configService: ConfigService) {}
+
+  get port (): number {
+    let port = this.configService.get<string>('port');
+    if (!port) {
+      console.warn(`No port specified, the default ${this.defaultPort} will be used`);
+      port = this.defaultPort;
+    }
+
+    return +port;
+  }
 
   get databaseUrl () : string {
     const url = this.configService.get<string>('databaseUrl');
