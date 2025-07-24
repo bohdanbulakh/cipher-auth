@@ -8,6 +8,13 @@
       "when": 1753397611638,
       "tag": "0000_create_database",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1753398448687,
+      "tag": "0001_replace_email_with_username",
+      "breakpoints": true
     }
   ]
 }
