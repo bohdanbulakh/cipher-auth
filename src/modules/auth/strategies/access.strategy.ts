@@ -9,22 +9,31 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from '../types/jwt.payload';
 import { UsersInsert } from '../../../database/entities/user.entity';
 import { InvalidEntityIdException } from '../../../common/exceptions/invalid-entity-id-exception';
+import { RedisService } from '../../../redis/redis.service';
+import { Request } from 'express';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class AccessStrategy extends PassportStrategy(Strategy) {
   constructor (
     @Inject(DrizzleAsyncProvider)
     private readonly db: NodePgDatabase<typeof schema>,
+    private readonly redisService: RedisService,
+    private readonly authService: AuthService,
     configService: SecurityConfigService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([CookieUtils.getRequestJwt]),
       secretOrKey: configService.accessSecret,
       ignoreExpiration: false,
+      passReqToCallback: true,
     });
   }
 
-  async validate (payload: JwtPayload): Promise<Omit<UsersInsert, 'password'>> {
+  async validate (request: Request, payload: JwtPayload): Promise<Omit<UsersInsert, 'password'>> {
+    const token = CookieUtils.getRequestJwt(request);
+    const jwtExpires = this.authService.getTokenExpTime(token, 's');
+
     if (!payload) throw new UnauthorizedException();
 
     const user = await this.db.query.users.findFirst({
@@ -35,6 +44,7 @@ export class AccessStrategy extends PassportStrategy(Strategy) {
     if (!user) throw new InvalidEntityIdException('User');
 
     const { password: _, ...result } = user;
+    await this.redisService.saveUser(token, result, jwtExpires);
     return result;
   }
 }

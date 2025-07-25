@@ -67,11 +67,11 @@ export class AuthController {
   })
   @ApiCreatedResponse()
   @ApiBody({ type: LoginDto })
-  login (
+  async login (
     @GetUser() user: UsersSelect,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const accessToken = this.authService.generateToken(user);
+    const accessToken = await this.authService.login(user);
     CookieUtils.setResponseCookie(response, accessToken, {
       accessExpires: this.authService.getTokenExpTime(accessToken),
     });

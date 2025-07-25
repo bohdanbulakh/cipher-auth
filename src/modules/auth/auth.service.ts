@@ -9,6 +9,7 @@ import { AlreadyRegisteredException } from '../../common/exceptions/already-regi
 import { JwtService } from '@nestjs/jwt';
 import { SecurityConfigService } from '../../config/security-config.service';
 import { JwtPayload } from './types/jwt.payload';
+import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     private readonly db: NodePgDatabase<typeof schema>,
     private readonly configService: SecurityConfigService,
     private readonly jwtService: JwtService,
+    private readonly redisService: RedisService,
   ) {}
 
   async createUser (data: CreateUserDto) {
@@ -31,6 +33,14 @@ export class AuthService {
       .returning();
 
     return result;
+  }
+
+  async login (user: UsersSelect) {
+    const token = this.generateToken(user);
+    const tokenExpires = this.getTokenExpTime(token, 's');
+    await this.redisService.saveUser(token, user, tokenExpires);
+
+    return token;
   }
 
   private async hashPassword (password: string) {
@@ -56,8 +66,8 @@ export class AuthService {
     });
   }
 
-  getTokenExpTime (token: string) {
+  getTokenExpTime (token: string, type: 's' | 'ms' = 'ms') {
     const decoded =  this.jwtService.decode(token);
-    return decoded['exp'] as number * 1000;
+    return decoded['exp'] as number * (type === 'ms' ? 1000 : 1);
   }
 }
