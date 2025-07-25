@@ -17,4 +17,4 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY package.json ./
 
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]
