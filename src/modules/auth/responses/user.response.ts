@@ -11,5 +11,5 @@ export class UserResponse {
     firstName: string;
 
   @ApiProperty({ nullable: true })
-    lastName: string ;
+    lastName: string | null;
 }
