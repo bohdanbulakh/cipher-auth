@@ -9,6 +9,7 @@ import { Response } from 'express';
 import { AccessGuard } from '../../common/guards/access.guard';
 import {
   ApiBadRequestResponse,
+  ApiBody,
   ApiCookieAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -16,6 +17,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UserResponse } from './responses/user.response';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -45,6 +47,14 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(LocalGuard)
+  @ApiBadRequestResponse({
+    description: `
+    InvalidBodyException:
+      Username must be a string
+      Username cannot be empty
+      Password cannot be empty
+      Password must be string`,
+  })
   @ApiUnauthorizedResponse({
     description: `
     UnauthorizedException:
@@ -56,6 +66,7 @@ export class AuthController {
       User with such id not found`,
   })
   @ApiCreatedResponse()
+  @ApiBody({ type: LoginDto })
   login (
     @GetUser() user: UsersSelect,
     @Res({ passthrough: true }) response: Response,
