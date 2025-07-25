@@ -7,21 +7,55 @@ import { UsersSelect } from '../../database/entities/user.entity';
 import { CookieUtils } from '../../common/utils/request.utils';
 import { Response } from 'express';
 import { AccessGuard } from '../../common/guards/access.guard';
-import { use } from 'passport';
+import {
+  ApiBadRequestResponse,
+  ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { UserResponse } from './responses/user.response';
 
 @Controller('auth')
 export class AuthController {
   constructor (private readonly authService: AuthService) {}
 
   @Post('register')
-  register (
-    @Body() body: CreateUserDto,
-  ) {
+  @ApiBadRequestResponse({
+    description: `
+    InvalidBodyException:
+      First name cannot be empty
+      First name must be string
+      Last name must be string
+      Username must be a string
+      Username cannot be empty
+      Password cannot be empty
+      Password must be string
+      
+    AlreadyRegisteredException:
+      User with such username is already registered`,
+  })
+  @ApiCreatedResponse({
+    type: UserResponse,
+  })
+  register (@Body() body: CreateUserDto) {
     return this.authService.createUser(body);
   }
 
   @Post('login')
   @UseGuards(LocalGuard)
+  @ApiUnauthorizedResponse({
+    description: `
+    UnauthorizedException:
+      The password is incorrect`,
+  })
+  @ApiNotFoundResponse({
+    description: `
+    InvalidEntityIdException:
+      User with such id not found`,
+  })
+  @ApiCreatedResponse()
   login (
     @GetUser() user: UsersSelect,
     @Res({ passthrough: true }) response: Response,
@@ -34,9 +68,21 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AccessGuard)
-  getMe (
-    @GetUser() user: UsersSelect,
-  ) {
+  @ApiCookieAuth()
+  @ApiUnauthorizedResponse({
+    description: `
+    UnauthorizedException:
+      Unauthorized`,
+  })
+  @ApiNotFoundResponse({
+    description: `
+    InvalidEntityIdException:
+      User with such id not found`,
+  })
+  @ApiOkResponse({
+    type: UserResponse,
+  })
+  getMe (@GetUser() user: UsersSelect) {
     return user;
   }
 }
