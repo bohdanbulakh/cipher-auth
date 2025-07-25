@@ -30,6 +30,21 @@ export class SecurityConfigService {
     const ttl = this.configService.get<string>('security.access.ttl');
     return checkForExistance(ttl, 'access ttl');
   }
+
+  get redisPassword (): string {
+    const password = this.configService.get<string>('redis.password');
+    return checkForExistance(password, 'redis password');
+  }
+
+  get redisHost (): string {
+    const host = this.configService.get<string>('redis.host');
+    return checkForExistance(host, 'redis host');
+  }
+
+  get redisPort (): number {
+    const port = this.configService.get<string>('redis.port');
+    return +checkForExistance(port, 'redis port');
+  }
 }
 
 function checkForExistance<T> (variable: T, name: string): NonNullable<T> {
