@@ -12,3 +12,5 @@ export const users = pgTable('users', {
   lastName: varchar('last_name', { length: 256 }),
   password: text('password').notNull(),
 });
+
+export type UsersInsert = typeof users.$inferInsert;
