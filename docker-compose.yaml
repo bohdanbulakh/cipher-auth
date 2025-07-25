@@ -24,6 +24,16 @@ services:
     env_file:
       - ~/deployment/cipher-auth/env/.postgres.env
 
+  redis:
+    image: redis:alpine
+    container_name: redis-cipher-auth
+    ports:
+      - "6379:6379"
+    env_file:
+      - ~/deployment/cipher-auth/env/.redis.env
+    volumes:
+      - ~/deployment/cipher-auth/redis-data:/data
+
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
