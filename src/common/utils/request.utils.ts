@@ -5,14 +5,10 @@ type TokenOptions = {
 }
 
 export class CookieUtils {
-  static getRequestJwt () {
-    return [
-      (req: Request) => {
-        const cookies = req.cookies as object;
-        return cookies?.['access_token'] as string;
-      },
-    ];
-  }
+  static getRequestJwt =  (req: Request) => {
+    const cookies = req.cookies as object;
+    return cookies?.['access_token'] as string;
+  };
 
   static setResponseCookie (
     res: Response,

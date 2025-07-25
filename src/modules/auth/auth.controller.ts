@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LocalGuard } from '../../common/guards/local.guard';
@@ -6,6 +6,8 @@ import { GetUser } from '../../common/decorators/get-user.decorator';
 import { UsersSelect } from '../../database/entities/user.entity';
 import { CookieUtils } from '../../common/utils/request.utils';
 import { Response } from 'express';
+import { AccessGuard } from '../../common/guards/access.guard';
+import { use } from 'passport';
 
 @Controller('auth')
 export class AuthController {
@@ -28,5 +30,13 @@ export class AuthController {
     CookieUtils.setResponseCookie(response, accessToken, {
       accessExpires: this.authService.getTokenExpTime(accessToken),
     });
+  }
+
+  @Get('me')
+  @UseGuards(AccessGuard)
+  getMe (
+    @GetUser() user: UsersSelect,
+  ) {
+    return user;
   }
 }

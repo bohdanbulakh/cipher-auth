@@ -8,6 +8,7 @@ import { UsersInsert, UsersSelect } from '../../database/entities/user.entity';
 import { AlreadyRegisteredException } from '../../common/exceptions/already-registered.exception';
 import { JwtService } from '@nestjs/jwt';
 import { SecurityConfigService } from '../../config/security-config.service';
+import { JwtPayload } from './types/jwt.payload';
 
 @Injectable()
 export class AuthService {
@@ -47,16 +48,16 @@ export class AuthService {
   }
 
   generateToken (user: UsersSelect) {
-    const payload = { id: user.id };
+    const payload: JwtPayload = { sub: user.id };
 
     return this.jwtService.sign(payload, {
       expiresIn: this.configService.accessTtl,
       secret: this.configService.accessSecret,
-    }) as string;
+    });
   }
 
   getTokenExpTime (token: string) {
-    const decoded =  this.jwtService.decode(token) as object;
+    const decoded =  this.jwtService.decode(token);
     return decoded['exp'] as number * 1000;
   }
 }
