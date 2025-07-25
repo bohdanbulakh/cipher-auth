@@ -30,16 +30,6 @@ export class SecurityConfigService {
     const ttl = this.configService.get<string>('security.access.ttl');
     return checkForExistance(ttl, 'access ttl');
   }
-
-  get refreshSecret (): string {
-    const secret =  this.configService.get<string>('security.refresh.secret');
-    return checkForExistance(secret, 'refresh secret');
-  }
-
-  get refreshTtl (): string {
-    const ttl = this.configService.get<string>('security.refresh.ttl');
-    return checkForExistance(ttl, 'refresh ttl');
-  }
 }
 
 function checkForExistance<T> (variable: T, name: string): NonNullable<T> {

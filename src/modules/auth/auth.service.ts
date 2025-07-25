@@ -1,22 +1,27 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { DrizzleAsyncProvider } from '../../database/drizzle';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { schema, users } from '../../database/schema';
 import * as bcrypt from 'bcrypt';
-import { UsersInsert } from '../../database/entities/user.entity';
+import { UsersInsert, UsersSelect } from '../../database/entities/user.entity';
+import { AlreadyRegisteredException } from '../../common/exceptions/already-registered.exception';
+import { JwtService } from '@nestjs/jwt';
+import { SecurityConfigService } from '../../config/security-config.service';
 
 @Injectable()
 export class AuthService {
   constructor (
     @Inject(DrizzleAsyncProvider)
     private readonly db: NodePgDatabase<typeof schema>,
+    private readonly configService: SecurityConfigService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async createUser (data: CreateUserDto) {
     data.password = await this.hashPassword(data.password);
     if (await this.checkIfUserIsRegistered(data.username)) {
-      throw new BadRequestException('User with such username is already registered');
+      throw new AlreadyRegisteredException();
     }
 
     const [{ password: _, ...result }]: UsersInsert[] = await this.db
@@ -39,5 +44,19 @@ export class AuthService {
     });
 
     return !!(await user);
+  }
+
+  generateToken (user: UsersSelect) {
+    const payload = { id: user.id };
+
+    return this.jwtService.sign(payload, {
+      expiresIn: this.configService.accessTtl,
+      secret: this.configService.accessSecret,
+    }) as string;
+  }
+
+  getTokenExpTime (token: string) {
+    const decoded =  this.jwtService.decode(token) as object;
+    return decoded['exp'] as number * 1000;
   }
 }
