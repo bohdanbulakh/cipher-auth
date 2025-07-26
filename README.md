@@ -37,3 +37,5 @@ redirected to the social network's authorization page. After successful authoriz
 network is returned to the backend. After that, it creates or finds the user in the database. Then we issue them their
 own JWT token.
 
+<img width="1256" height="578" alt="Screenshot_20250726_223128" src="https://github.com/user-attachments/assets/cd7d7da2-7e56-4b85-b6fb-99fee6f76694" />
+
