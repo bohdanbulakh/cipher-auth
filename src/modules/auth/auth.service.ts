@@ -4,12 +4,13 @@ import { DrizzleAsyncProvider } from '../../database/drizzle';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { schema, users } from '../../database/schema';
 import * as bcrypt from 'bcrypt';
-import { UsersInsert, UsersSelect } from '../../database/entities/user.entity';
+import { UsersInsert } from '../../database/entities/user.entity';
 import { AlreadyRegisteredException } from '../../common/exceptions/already-registered.exception';
 import { JwtService } from '@nestjs/jwt';
 import { SecurityConfigService } from '../../config/security-config.service';
 import { JwtPayload } from './types/jwt.payload';
 import { RedisService } from '../../redis/redis.service';
+import { UserResponse } from './responses/user.response';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +36,7 @@ export class AuthService {
     return result;
   }
 
-  async login (user: UsersSelect) {
+  async login (user: UserResponse) {
     const token = this.generateToken(user);
     const tokenExpires = this.getTokenExpTime(token, 's');
     await this.redisService.saveUser(token, user, tokenExpires);
@@ -43,13 +44,13 @@ export class AuthService {
     return token;
   }
 
-  private async hashPassword (password: string) {
+  async hashPassword (password: string) {
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);
     return bcrypt.hash(password, salt);
   }
 
-  private async checkIfUserIsRegistered (username: string) {
+  async checkIfUserIsRegistered (username: string) {
     const user = this.db.query.users.findFirst({
       where: (users, { eq }) => eq(users.username, username),
     });
@@ -57,7 +58,7 @@ export class AuthService {
     return !!(await user);
   }
 
-  generateToken (user: UsersSelect) {
+  generateToken (user: UserResponse) {
     const payload: JwtPayload = { sub: user.id };
 
     return this.jwtService.sign(payload, {
