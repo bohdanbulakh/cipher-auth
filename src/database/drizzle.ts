@@ -13,11 +13,7 @@ export const drizzleProvider: Provider[] = [
     inject: [SecurityConfigService],
     useFactory: (configService: SecurityConfigService) => {
       const connectionString = configService.databaseUrl;
-      if (!connectionString) throw new Error('DATABASE_URL missing');
-
-      const pool = new Pool({
-        connectionString,
-      });
+      const pool = new Pool({ connectionString });
 
       return drizzle(pool, { schema }) as NodePgDatabase<typeof schema>;
     },

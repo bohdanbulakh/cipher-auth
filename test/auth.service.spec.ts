@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../src/modules/auth/dto/create-user.dto';
 import { UsersSelect } from '../src/database/entities/user.entity';
 import { UserResponse } from '../src/modules/auth/responses/user.response';
+import { AlreadyRegisteredException } from '../src/common/exceptions/already-registered.exception';
 
 const mockDrizzle = {
   insert: () => ({
@@ -48,7 +49,7 @@ describe('Auth Service', () => {
   let authService: AuthService;
   let jwtService: JwtService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const app: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
@@ -77,6 +78,15 @@ describe('Auth Service', () => {
       const result = await authService.createUser(testUser);
       expect(result).toEqual(dbUser);
     });
+
+    it('should throw AlreadyRegisteredException', async () => {
+      jest.spyOn(authService, 'checkIfUserIsRegistered')
+        .mockResolvedValueOnce(true);
+
+      await expect(authService.createUser(testUser))
+        .rejects
+        .toThrow(AlreadyRegisteredException);
+    });
   });
 
   describe('hashPassword', () => {
@@ -88,11 +98,6 @@ describe('Auth Service', () => {
 
   describe('checkIfUserIsRegistered', () => {
     it('should return true if user exists', async () => {
-      expect(await authService.checkIfUserIsRegistered(testUser.username))
-        .toEqual(false);
-    });
-
-    it('should throw AlreadyRegisteredException', async () => {
       mockDrizzle.query.users.findFirst.mockResolvedValueOnce({
         id: 'existing-id',
         username: 'testuser',
@@ -100,6 +105,13 @@ describe('Auth Service', () => {
 
       expect(await authService.checkIfUserIsRegistered(testUser.username))
         .toEqual(true);
+    });
+
+    it('should return false if user not exists', async () => {
+      mockDrizzle.query.users.findFirst.mockResolvedValueOnce(null);
+
+      expect(await authService.checkIfUserIsRegistered(testUser.username))
+        .toEqual(false);
     });
   });
 
